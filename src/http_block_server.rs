@@ -1,22 +1,26 @@
-use actix_web::{ web, App, HttpResponse, HttpServer, Responder };
+use rocket::State;
 
-async fn server_announce(name: String) -> impl Responder {
-    HttpResponse::Ok().body(name)
+struct NameState {
+    name: &'static str,
 }
 
+#[rocket::get("/")]
+fn world(name_state: &State<NameState>) -> &str {
+    name_state.name
+}
 
-pub async fn run_announce_server(
-    name: String,
-    port: u16
-) -> std::io::Result<()> {
-    HttpServer::new(move || {
-        let name_clone = name.clone();
+pub async fn run(name: &'static str, port: u16) {
+    let name_state = NameState { name };
 
-        App::new().route(
-            "/",
-            web::get().to(move || server_announce(name_clone.clone()))
+    let _ = rocket
+        ::build()
+        .manage(name_state)
+        .configure(
+            rocket::Config
+                ::figment()
+                .merge(("port", port))
+                .merge(("log_level", "off"))
         )
-    })
-        .bind(("127.0.0.1", port))?
-        .run().await
+        .mount("/", rocket::routes![world])
+        .launch().await;
 }
