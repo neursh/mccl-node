@@ -5,7 +5,7 @@ mod structs;
 
 use utils::clear;
 
-#[rocket::main]
+#[tokio::main]
 async fn main() -> std::io::Result<()> {
     loop {
         clear::invoke();
@@ -17,10 +17,10 @@ async fn main() -> std::io::Result<()> {
             }
         };
 
-        if selected_instance.text == "* Create a new instance" {
+        if selected_instance.text == "*  Create a new instance" {
             screens::new_instance::mount();
         } else {
-            println!("{}", selected_instance.instance.unwrap().config.name);
+            screens::instance_menu::mount(selected_instance.instance.unwrap());
         }
     }
 

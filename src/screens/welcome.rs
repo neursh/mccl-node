@@ -28,7 +28,7 @@ pub fn mount() -> Result<ResponseInfo, Error> {
     };
 
     let mut instances_display: Vec<String> = vec![
-        "* Create a new instance".to_string()
+        "*  Create a new instance".to_string()
     ];
     for instance in instances.iter().enumerate() {
         instances_display.push(

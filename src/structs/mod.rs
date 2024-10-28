@@ -1,1 +1,1 @@
-pub(crate) mod instance;
+pub mod instance;

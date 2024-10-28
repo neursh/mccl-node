@@ -1,2 +1,3 @@
-pub(crate) mod new_instance;
-pub(crate) mod welcome;
+pub mod new_instance;
+pub mod welcome;
+pub mod instance_menu;

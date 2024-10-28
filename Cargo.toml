@@ -1,13 +1,12 @@
 [package]
-name = "mccl-client"
+name = "mccl-node"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.213", features = ["derive"] }
-tokio = { version = "1.41.0", features = ["process"] }
+tokio = { version = "1.41.0", features = ["full"] }
 reqwest = { version = "0.12.8", features = ["json"] }
-rocket = "0.5.1"
 serde_json = "1.0.132"
 inquire = "0.7.5"
 colored = "2.1.0"
