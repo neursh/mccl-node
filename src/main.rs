@@ -1,61 +1,26 @@
 mod utils;
 mod services;
 mod instance;
+mod screens;
 
-use colored::Colorize;
-use inquire::Select;
-use instance::instances_reader;
-use services::{ http_block_server, server_launcher };
-use utils::pause;
-use std::io::Write;
+use utils::clear;
 
 #[rocket::main]
 async fn main() -> std::io::Result<()> {
-    let instances = if let Ok(instances) = instances_reader::read("instances") {
-        instances
-    } else {
-        print!(
-            "{} Can't read the `instances` folder. Maybe the folder doesn't exist?\n\n{}",
-            ">".red().bold(),
-            "Press any key to exit...".red()
-        );
-        std::io::stdout().flush().unwrap();
+    loop {
+        clear::invoke();
 
-        pause::invoke();
-        return Ok(());
-    };
+        let selected_instance = match screens::welcome::mount() {
+            Ok(selected) => selected,
+            Err(err) => {
+                return Err(err);
+            }
+        };
 
-    let mut instances_display: Vec<String> = vec![];
-    for instance in instances {
-        let mut display = instance.config["name"]
-            .as_str()
-            .to_owned()
-            .unwrap()
-            .to_string();
-        display.push_str(&format!(" ({})", instance.path));
-
-        instances_display.push(display);
-    }
-
-    let server = Select::new(
-        "Welcome to MCCL Node! Please select an instance to proceed ->",
-        instances_display
-    );
-    let selected = server.prompt().unwrap();
-
-    println!(
-        "{} Checking for active node running this instance...",
-        ">".green().bold()
-    );
-
-    tokio::spawn(async move {
-        match server_launcher::start().await {
-            Ok(_) => {}
-            Err(_) => println!(""),
+        if selected_instance == "* Create a new instance" {
+            screens::new_instance::mount();
         }
-    });
-
-    http_block_server::run("_name_", 25566).await;
+    }
 
     Ok(())
 }
