@@ -1,3 +1,4 @@
-pub(crate) mod config_reader;
-pub(crate) mod pause;
-pub(crate) mod clear;
+pub mod config_reader;
+pub mod pause;
+pub mod clear;
+pub mod open_link;

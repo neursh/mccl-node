@@ -1,5 +1,5 @@
-use std::io::{ Error, ErrorKind, Write };
-use crate::{ instance::instances_reader, utils::pause };
+use std::io::{ Error, ErrorKind, Write, stdout };
+use crate::{ services::instances_reader, utils::pause };
 use colored::Colorize;
 use inquire::Select;
 
@@ -12,7 +12,7 @@ pub fn mount() -> Result<String, Error> {
             ">".red(),
             "Press any key to exit...".red()
         );
-        std::io::stdout().flush().unwrap();
+        let _ = stdout().flush();
 
         pause::invoke();
         return Err(Error::new(ErrorKind::Other, "Can't read `instances`"));
@@ -26,7 +26,7 @@ pub fn mount() -> Result<String, Error> {
             format!(
                 "{}. {} ({})",
                 instance.0 + 1,
-                instance.1.config["name"].as_str().unwrap(),
+                instance.1.config.name,
                 instance.1.path
             )
         );
@@ -34,7 +34,7 @@ pub fn mount() -> Result<String, Error> {
 
     Ok(
         Select::new(
-            "Welcome to MCCL Node! Please select an instance to proceed ->",
+            "Welcome to MCCL Node :3 ! Please select an instance to proceed ->",
             instances_display
         )
             .prompt()

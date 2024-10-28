@@ -1,7 +1,7 @@
 mod utils;
 mod services;
-mod instance;
 mod screens;
+mod structs;
 
 use utils::clear;
 

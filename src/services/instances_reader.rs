@@ -1,11 +1,5 @@
 use std::{ fs, io::Error };
-use serde_json::Value;
-use crate::utils::config_reader;
-
-pub struct Instance {
-    pub path: String,
-    pub config: Value,
-}
+use crate::{ structs::instance::Instance, utils::config_reader };
 
 pub fn read(name: &str) -> Result<Vec<Instance>, Error> {
     let mut instances: Vec<Instance> = vec![];
@@ -25,7 +19,10 @@ pub fn read(name: &str) -> Result<Vec<Instance>, Error> {
         instance_config.push_str("/config.mccl.json");
 
         if let Ok(config) = config_reader::json(&instance_config) {
-            instances.push(Instance { path: instance_path, config });
+            instances.push(Instance {
+                path: instance_path,
+                config,
+            });
         }
     }
 
