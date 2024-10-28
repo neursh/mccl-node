@@ -1,6 +1,6 @@
 use serde::{ Deserialize, Serialize };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct InstanceConfig {
     pub name: String,
     pub username: String,
@@ -13,6 +13,7 @@ pub struct InstanceConfig {
     pub excluded_lock_structure: Vec<String>,
 }
 
+#[derive(Clone)]
 pub struct Instance {
     pub path: String,
     pub config: InstanceConfig,

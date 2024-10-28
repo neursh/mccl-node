@@ -1,9 +1,18 @@
 use std::io::{ Error, ErrorKind, Write, stdout };
-use crate::{ services::instances_reader, utils::pause };
+use crate::{
+    services::instances_reader,
+    structs::instance::Instance,
+    utils::pause,
+};
 use colored::Colorize;
 use inquire::Select;
 
-pub fn mount() -> Result<String, Error> {
+pub struct ResponseInfo {
+    pub text: String,
+    pub instance: Option<Instance>,
+}
+
+pub fn mount() -> Result<ResponseInfo, Error> {
     let instances = if let Ok(instances) = instances_reader::read("instances") {
         instances
     } else {
@@ -32,12 +41,23 @@ pub fn mount() -> Result<String, Error> {
         );
     }
 
-    Ok(
-        Select::new(
-            "Welcome to MCCL Node :3 ! Please select an instance to proceed ->",
-            instances_display
-        )
-            .prompt()
-            .unwrap()
+    let selected = Select::new(
+        "Welcome to MCCL Node :3 | Please select an instance to proceed ->",
+        instances_display
     )
+        .prompt()
+        .unwrap();
+    let selected_instance: Option<Instance> = if
+        let Some(number) = selected.split(". ").next()
+    {
+        if let Ok(parsed_number) = number.parse::<usize>() {
+            Some(instances[parsed_number - 1].clone())
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+
+    Ok(ResponseInfo { text: selected, instance: selected_instance })
 }

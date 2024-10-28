@@ -17,8 +17,10 @@ async fn main() -> std::io::Result<()> {
             }
         };
 
-        if selected_instance == "* Create a new instance" {
+        if selected_instance.text == "* Create a new instance" {
             screens::new_instance::mount();
+        } else {
+            println!("{}", selected_instance.instance.unwrap().config.name);
         }
     }
 
