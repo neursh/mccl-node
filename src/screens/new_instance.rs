@@ -1,9 +1,7 @@
-use std::{ fs, io::{ stdout, Write }, path::{ Path, PathBuf }, time::Duration };
+use std::{ io::{ stdout, Write }, path::{ Path, PathBuf } };
 use colored::Colorize;
-use indicatif::ProgressBar;
 use inquire::{ Confirm, Select, Text };
-use nanoid::nanoid;
-use crate::{ structs::instance::InstanceConfig, utils::pause };
+use crate::{ services::create_instance, utils::pause };
 
 pub fn mount() {
     let instance_folder = Text::new("Folder name to store the instance:")
@@ -79,8 +77,6 @@ pub fn mount() {
         }
     }
 
-    println!();
-
     let eula = Select::new(
         "Do you accept Minecraft's EULA? (https://minecraft.net/eula)",
         vec!["I accept", "I do not accept"]
@@ -100,57 +96,13 @@ pub fn mount() {
         return;
     }
 
-    let spinner = ProgressBar::new_spinner();
-    spinner.enable_steady_tick(Duration::from_millis(100));
-
-    let create_folder = format!("instances/{}", instance_folder);
-    let executable_filename = executable_location
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap();
-
-    fs::create_dir(&create_folder).unwrap();
-    spinner.println(
-        format!(
-            "{} Created {} folder in instances.",
-            ">".green(),
-            instance_folder.bright_cyan()
-        )
+    create_instance::build(
+        instance_folder,
+        executable_location.clone(),
+        print_location,
+        instance_name.clone()
     );
 
-    fs::copy(
-        &executable_location,
-        format!("{}/{}", create_folder, executable_filename)
-    ).unwrap();
-    spinner.println(
-        format!("{} Copied {}", ">".green(), print_location.bright_cyan())
-    );
-
-    let config = InstanceConfig {
-        name: instance_name.clone(),
-        username: "admin".to_owned(),
-        token: nanoid!(48),
-        service: None,
-        discord_webhook: None,
-        local_last_run: 0,
-        executable: executable_filename.to_owned(),
-        cmd: vec![
-            "java".to_owned(),
-            "-jar".to_owned(),
-            executable_filename.to_owned(),
-            "-nogui".to_owned()
-        ],
-        excluded_lock_structure: vec![],
-    };
-
-    let _ = fs::write(
-        format!("{}/{}", create_folder, "config.mccl.json"),
-        serde_json::to_string_pretty(&config).unwrap()
-    );
-    let _ = fs::write(format!("{}/{}", create_folder, "eula.txt"), "eula=true");
-
-    spinner.finish();
     print!(
         "{} Created {} successfully!\n\n{}",
         ">".green(),
