@@ -10,8 +10,9 @@ use crate::{
 pub fn mount(instance: Instance) {
     let selected_option = Select::new(
         &format!(
-            "Instance {} | What would you like to do?",
-            instance.config.name.bright_cyan()
+            "Instance {} | {}",
+            instance.config.name.bright_cyan(),
+            instance.config.username.bright_cyan(),
         ),
         vec![
             "1. Host this instance".bold(),
