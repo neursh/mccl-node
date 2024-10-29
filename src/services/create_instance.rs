@@ -47,7 +47,6 @@ pub fn build(
         local_last_run: 0,
         executable: executable_filename.to_owned(),
         cmd: vec![
-            "java".to_owned(),
             "-jar".to_owned(),
             executable_filename.to_owned(),
             "-nogui".to_owned()

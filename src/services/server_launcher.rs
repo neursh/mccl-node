@@ -2,13 +2,15 @@ use std::{ io::{ ErrorKind, Error }, process::Stdio };
 use colored::Colorize;
 use tokio::{ io::{ AsyncBufReadExt, BufReader }, process::Command };
 
-pub async fn start() -> Result<(), Error> {
+use crate::structs::instance::Instance;
+
+pub async fn start(instance: &Instance) -> Result<(), Error> {
     let mut java_process = Command::new("java");
     java_process
-        .current_dir("server")
+        .current_dir(instance.path.clone())
         .kill_on_drop(true)
         .stdout(Stdio::piped())
-        .args(["-jar", "paper-1.21.1-15.jar", "-nogui"]);
+        .args(instance.config.cmd.clone());
 
     let mut console = java_process.spawn()?;
     let stdout = console.stdout.take().unwrap();
@@ -43,11 +45,6 @@ pub async fn start() -> Result<(), Error> {
     }
 
     let runtime_result = handle.await.unwrap();
-
-    match runtime_result {
-        Ok(_) => println!("{} Server stopped normally!", ">".green().bold()),
-        Err(_) => println!("{} Server stopped prematurely!", ">".red().bold()),
-    }
 
     runtime_result
 }

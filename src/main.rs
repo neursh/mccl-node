@@ -3,7 +3,7 @@ mod services;
 mod screens;
 mod structs;
 
-use utils::clear;
+use utils::{ clear, pause };
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -20,9 +20,9 @@ async fn main() -> std::io::Result<()> {
         if selected_instance.text == "*  Create a new instance" {
             screens::new_instance::mount();
         } else {
-            screens::instance_menu::mount(selected_instance.instance.unwrap());
+            screens::instance_menu::mount(
+                selected_instance.instance.unwrap()
+            ).await;
         }
     }
-
-    Ok(())
 }
