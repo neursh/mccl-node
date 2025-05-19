@@ -1,19 +1,19 @@
 use serde::{ Deserialize, Serialize };
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InstanceConfig {
     pub name: String,
     pub username: String,
     pub token: String,
-    pub service: Option<String>,
+    pub service: String,
     pub discord_webhook: Option<String>,
     pub local_last_run: u64,
-    pub executable: String,
-    pub cmd: Vec<String>,
-    pub excluded_lock_structure: Vec<String>,
+    pub java_runtime: String,
+    pub args: Vec<String>,
+    pub untracked: Vec<String>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Instance {
     pub path: String,
     pub config: InstanceConfig,
