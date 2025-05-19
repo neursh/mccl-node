@@ -1,16 +1,18 @@
 use colored::Colorize;
 use inquire::{ Confirm, Select };
 use crate::{
-    services::server_launcher,
+    functions::server_launcher,
     structs::instance::Instance,
     utils::{ clear, pause },
 };
 
-pub async fn mount(instance: Instance) {
+use super::connect_active;
+
+pub async fn mount(instance: &Instance) {
     loop {
         let selected_option = Select::new(
             &format!(
-                "Instance {} | {} ->",
+                "Instance {} | {} >",
                 instance.config.name.bright_cyan(),
                 instance.config.username.bright_cyan()
             ),
@@ -25,16 +27,30 @@ pub async fn mount(instance: Instance) {
             .prompt()
             .unwrap();
 
+        if selected_option.starts_with("1") {
+        }
+
+        if selected_option.starts_with("2") {
+            connect_active::mount(instance).await;
+        }
+
+        // Launch a local server.
         if selected_option.starts_with("3") {
             let confirm = Confirm::new(
-                "Hosting locally only allows you to access the server on your computer. Are you sure?"
+                &format!(
+                    "{}{}\n           {}\n           {}\n           {}\nAre you sure?",
+                    "Warning".red().bold(),
+                    ": Hosting locally WILL NOT sync with the remote service, which means:".bold(),
+                    "- Your changes in this session will de-sync from remote service, any no one can join this session, except you.".yellow(),
+                    "- When you host publicly again, the program will re-sync with the remote service and REMOVE your changes made locally.".red(),
+                    "- This session won't trigger a Discord notification.".green()
+                )
             )
                 .with_default(false)
                 .prompt()
                 .unwrap();
             if confirm {
-                println!("{} Launching server...\n", ">".green());
-                match server_launcher::start(&instance).await {
+                match launch_handle(&instance).await {
                     Ok(_) => {
                         println!(
                             "\n{} Server stopped normally!\n\n{}",
@@ -44,20 +60,25 @@ pub async fn mount(instance: Instance) {
                     }
                     Err(_) => {
                         println!(
-                            "{} Server stopped prematurely!\n\n{}",
+                            "{} Server stopped prematurely!\n{}",
                             ">".red(),
                             "Press any key to go back...".red()
                         );
                     }
                 }
+
                 pause::invoke();
             }
-
-            clear::invoke();
         }
 
-        if selected_option.starts_with("*  Exit") {
+        if selected_option.starts_with("*  E") {
+            clear::invoke();
             break;
         }
     }
+}
+
+async fn launch_handle(instance: &Instance) -> Result<(), ()> {
+    println!("{} Launching server...", ">".green());
+    server_launcher::start(instance).await
 }

@@ -1,28 +1,55 @@
+use colored::Colorize;
+use functions::instances;
+use screens::{ home_menu, instance_menu };
+use utils::pause;
+
 mod utils;
-mod services;
 mod screens;
 mod structs;
-
-use utils::{ clear, pause };
+mod functions;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     loop {
-        clear::invoke();
+        println!(
+            "{}\n{}     {}     {}\n{}   {}   {}\n{}",
+            "┌─────────────────────────────────┐".green(),
+            "│".green(),
+            "Welcome to MCCL Node :3".bright_cyan().bold(),
+            "│".green(),
+            "|".green(),
+            "github.com/neursh/mccl-node".bright_magenta(),
+            "│".green(),
+            "└─────────────────────────────────┘".green()
+        );
 
-        let selected_instance = match screens::welcome::mount() {
-            Ok(selected) => selected,
-            Err(err) => {
-                return Err(err);
-            }
+        let instances_fetch = if let Ok(cache) = instances::fetch() {
+            cache
+        } else {
+            println!(
+                "The program ran into a problem with instances reading. Press any key to try again..."
+            );
+            pause::invoke();
+            continue;
         };
 
-        if selected_instance.text == "*  Create a new instance" {
-            screens::new_instance::mount();
+        let selected_option = home_menu::mount(&instances_fetch);
+
+        if selected_option.starts_with("*") {
+            // New instance
         } else {
-            screens::instance_menu::mount(
-                selected_instance.instance.unwrap()
-            ).await;
+            // Split off some of the prefix characters from styling the text.
+            let index =
+                selected_option
+                    .split(".")
+                    .next()
+                    .unwrap()[4..]
+                    .parse::<usize>()
+                    .unwrap() - 1;
+
+            let selected_instance = instances_fetch.get(index).unwrap();
+
+            instance_menu::mount(selected_instance).await;
         }
     }
 }
