@@ -111,23 +111,16 @@ pub async fn establish(check: ServiceCheck) {
     );
 
     let v4_addr = "0.0.0.0:25565".parse().unwrap();
-    let v6_addr = "[::]:25565".parse().unwrap();
-
-    let mut proxy_layer = TcpSocket::new_v4().unwrap();
+    let proxy_layer = TcpSocket::new_v4().unwrap();
 
     if proxy_layer.bind(v4_addr).is_err() {
-        proxy_layer = TcpSocket::new_v6().unwrap();
-
-        if proxy_layer.bind(v6_addr).is_err() {
-            println!(
-                "{} {}",
-                ">".red(),
-                "Can't find a suitable port or IP to create a MCCL proxy layer!"
-                    .red()
-                    .bold()
-            );
-            return;
-        }
+        println!(
+            "{} {}",
+            ">".red(),
+            "Can't find a suitable port or IP to create a MCCL proxy layer!"
+                .red()
+                .bold()
+        );
     }
 
     let proxy_listener = match proxy_layer.listen(1024) {
