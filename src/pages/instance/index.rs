@@ -2,11 +2,10 @@ use colored::Colorize;
 use inquire::{ Confirm, Select };
 use crate::{
     functions::server_launcher,
+    pages,
     structs::instance::Instance,
     utils::{ clear, pause },
 };
-
-use super::connect_active;
 
 pub async fn mount(instance: &Instance) {
     loop {
@@ -28,10 +27,11 @@ pub async fn mount(instance: &Instance) {
             .unwrap();
 
         if selected_option.starts_with("1") {
+            host::mount(instance).await;
         }
 
         if selected_option.starts_with("2") {
-            connect_active::mount(instance).await;
+            pages::connect::index::mount(instance).await;
         }
 
         // Launch a local server.

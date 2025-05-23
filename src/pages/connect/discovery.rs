@@ -1,19 +1,15 @@
 use colored::Colorize;
 
-use crate::{
-    functions::connect_node,
-    structs::{ instance::Instance, service::ServiceCheck },
-    utils::pause,
-};
+use crate::structs::{ instance::InstanceConfig, service::ServiceCheck };
 
-pub async fn mount(instance: &Instance) {
+pub async fn find(config: &InstanceConfig) -> Result<ServiceCheck, ()> {
     let client = reqwest::Client::new();
 
     let request = client
-        .get(format!("{}{}", instance.config.service, "/session/check"))
+        .get(format!("{}{}", config.service, "/session/check"))
         .header(
             "Authorization",
-            format!("{} {}", instance.config.username, instance.config.token)
+            format!("{} {}", config.username, config.token)
         )
         .send().await;
 
@@ -22,35 +18,30 @@ pub async fn mount(instance: &Instance) {
             let parsed_response = response.json::<ServiceCheck>().await;
             match parsed_response {
                 Ok(check) => {
-                    connect_node::establish(check).await;
+                    return Ok(check);
                 }
                 Err(message) => {
                     println!(
-                        "{}\n{}\n\n{}",
+                        "{}\n{}",
                         "> Can't read check request from the remote service. Error log:"
                             .red()
                             .bold(),
-                        message,
-                        "Press any key to go back...".red()
+                        message
                     );
-                    pause::invoke();
-
-                    return;
+                    return Err(());
                 }
             }
         }
         Err(message) => {
             println!(
-                "{}\n{}\n\n{}",
+                "{}\n{}",
                 "> Can't send check request to the remote service, please check your internet connection. Error log:"
                     .red()
                     .bold(),
-                message,
-                "Press any key to go back...".red()
+                message
             );
-            pause::invoke();
 
-            return;
+            return Err(());
         }
     }
 }

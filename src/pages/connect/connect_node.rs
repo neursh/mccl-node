@@ -14,101 +14,7 @@ use tokio::{
 use crate::structs::service::ServiceCheck;
 
 pub async fn establish(check: ServiceCheck) {
-    {
-        let endpoint = Endpoint::builder().bind().await.unwrap();
-
-        let dyn_nodeid = &check.alpn.clone().unwrap();
-        if dyn_nodeid.len() != 32 {
-            println!(
-                "{} {}",
-                ">".red(),
-                "Node ID from the hosting node does not match with the standard key."
-                    .red()
-                    .bold()
-            );
-            return;
-        }
-
-        println!(
-            "{}",
-            "[TEST]> Attempting to connect with the hosting node...".yellow()
-        );
-
-        let connection = match
-            endpoint.connect(
-                NodeId::from_bytes(
-                    dyn_nodeid[..32].try_into().unwrap()
-                ).unwrap(),
-                &check.alpn.clone().unwrap()
-            ).await
-        {
-            Ok(connection) => connection,
-            Err(message) => {
-                println!(
-                    "{} {}\n{}",
-                    "[TEST]>".red(),
-                    "Can't connect to the hosting node, error logs:"
-                        .red()
-                        .bold(),
-                    message
-                );
-                return;
-            }
-        };
-
-        println!(
-            "{}",
-            "[TEST]> Attempting to request a bidirectional communication protocol...".yellow()
-        );
-
-        let mut hosting_stream = match connection.open_bi().await {
-            Ok(hosting_stream) => hosting_stream,
-            Err(message) => {
-                println!(
-                    "{} {}\n{}",
-                    "[TEST]>".red(),
-                    "The hosting node did not accept the request, error logs:"
-                        .red()
-                        .bold(),
-                    message
-                );
-                return;
-            }
-        };
-
-        match hosting_stream.0.write(&[1 as u8]).await {
-            Ok(_) => {
-                println!(
-                    "{} {}",
-                    "[TEST]>".green(),
-                    "Connection made with a bidirectional communication protocol!"
-                        .green()
-                        .bold()
-                );
-            }
-            Err(message) => {
-                println!(
-                    "{} {}\n{}",
-                    "[TEST]>".red(),
-                    "Something when wrong when trying to make a connection, error logs:"
-                        .red()
-                        .bold(),
-                    message
-                );
-                return;
-            }
-        }
-
-        connection.close(VarInt::from_u32(0), &[0_u8]);
-    }
-
-    println!(
-        "{} {}",
-        ">".green(),
-        "Hosting node is available! Creating a proxy layer..."
-            .green()
-            .bold()
-    );
+    println!("{} {}", ">".green(), "Creating a proxy layer...".green().bold());
 
     let v4_addr = "0.0.0.0:25565".parse().unwrap();
     let proxy_layer = TcpSocket::new_v4().unwrap();
@@ -149,11 +55,7 @@ pub async fn establish(check: ServiceCheck) {
     loop {
         let socket = match proxy_listener.accept().await {
             Ok((socket, addr)) => {
-                println!(
-                    "{} {:?}",
-                    "[proxy]> New connection:".green(),
-                    addr
-                );
+                println!("{} {:?}", "[proxy]> New connection:".green(), addr);
                 (socket, addr)
             }
             Err(message) => {
@@ -196,9 +98,6 @@ async fn proxy_traffic(
     };
 
     let addr_log = format!("{} ::", addr).bright_cyan().bold();
-
-    // let hosting_writer_arc = Arc::new(RwLock::new(hosting_node.2.0));
-    // let hosting_reader_arc = Arc::new(RwLock::new(hosting_node.2.1));
 
     tokio::join!(
         proxy_reader(addr_log.clone(), hosting_node.2.0, reader),
@@ -303,6 +202,8 @@ async fn proxy_writer(
             break;
         }
     }
+
+    let _ = writer.shutdown().await;
 }
 
 async fn connect_node(

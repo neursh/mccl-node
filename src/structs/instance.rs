@@ -7,7 +7,6 @@ pub struct InstanceConfig {
     pub token: String,
     pub service: String,
     pub discord_webhook: Option<String>,
-    pub local_last_run: u64,
     pub java_runtime: String,
     pub args: Vec<String>,
     pub untracked: Vec<String>,
